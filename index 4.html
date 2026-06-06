@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ScoreBot Academy - Level 1</title>
+  <style>
+    :root { --blue:#005BAC; --dark:#0b2545; --green:#22a447; --red:#d93434; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: Arial, Helvetica, sans-serif; background: linear-gradient(135deg,#eaf5ff,#fff); color:var(--dark); }
+    .app { max-width:900px; margin:0 auto; padding:18px; }
+    .header { background:var(--blue); color:white; border-radius:20px; padding:18px; text-align:center; box-shadow:0 8px 20px rgba(0,0,0,.12); }
+    .header h1 { margin:0; font-size:30px; }
+    .header p { margin:8px 0 0; }
+    .scorebar { display:flex; justify-content:space-between; align-items:center; margin:14px 0; gap:10px; }
+    .pill { background:white; border:2px solid #d6e9ff; border-radius:999px; padding:10px 14px; font-weight:bold; }
+    .card { background:white; border-radius:22px; padding:20px; box-shadow:0 8px 22px rgba(0,0,0,.10); border:1px solid #dbeafe; }
+    .scorebot { display:flex; align-items:center; gap:14px; background:#f7fbff; border:2px solid #d6e9ff; border-radius:18px; padding:14px; margin-bottom:16px; }
+    .bot-face { width:78px; height:78px; border-radius:22px; background:linear-gradient(145deg,#fff,#cfeaff); border:4px solid #0c65b7; display:flex; align-items:center; justify-content:center; font-size:42px; flex:none; }
+    .bot-message { font-size:18px; line-height:1.35; }
+    .question-title { font-size:24px; margin:10px 0 14px; font-weight:bold; }
+    .illustration { text-align:center; font-size:70px; background:linear-gradient(135deg,#e8f6ff,#fff7d6); border-radius:18px; padding:18px; margin:10px 0 16px; border:2px dashed #b7d9ff; }
+    .choices { display:grid; gap:12px; }
+    button.choice { width:100%; text-align:left; padding:16px; border-radius:16px; border:2px solid #d8e7f7; background:white; color:var(--dark); font-size:17px; cursor:pointer; }
+    button.correct { background:#eaffef; border-color:var(--green); }
+    button.wrong { background:#fff0f0; border-color:var(--red); }
+    .feedback { margin-top:16px; padding:14px; border-radius:16px; font-weight:bold; display:none; }
+    .feedback.good { display:block; background:#eaffef; color:#117b2e; border:2px solid #92dfaa; }
+    .feedback.bad { display:block; background:#fff0f0; color:#b12020; border:2px solid #f1a0a0; }
+    .actions { display:flex; gap:12px; margin-top:18px; flex-wrap:wrap; }
+    .primary, .secondary { border:none; border-radius:16px; padding:14px 18px; font-size:17px; font-weight:bold; cursor:pointer; }
+    .primary { background:var(--green); color:white; }
+    .secondary { background:#e7f1ff; color:var(--blue); }
+    .hidden { display:none; }
+    .category-row { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:16px 0; }
+    .category { border-radius:16px; padding:12px; text-align:center; background:#f7fbff; border:1px solid #dbeafe; font-weight:bold; }
+    .category span { display:block; font-size:34px; margin-bottom:6px; }
+    .graduate { text-align:center; padding:24px; }
+    .graduate h2 { font-size:34px; color:var(--green); }
+    .big-score { font-size:56px; font-weight:bold; color:var(--blue); margin:10px 0; }
+    @media (max-width:650px) {
+      .header h1 { font-size:24px; }
+      .category-row { grid-template-columns:repeat(2,1fr); }
+      .bot-message { font-size:16px; }
+      .question-title { font-size:21px; }
+      .illustration { font-size:58px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="header">
+      <h1>🤖 ScoreBot Academy</h1>
+      <p>Level 1: What is the Scorecard?</p>
+    </div>
+    <div class="scorebar">
+      <div class="pill">Question <span id="qNumber">1</span> / 5</div>
+      <div class="pill">Score: <span id="score">0</span> / 5</div>
+    </div>
+    <div id="startScreen" class="card">
+      <div class="scorebot">
+        <div class="bot-face">🤖</div>
+        <div class="bot-message"><strong>Hi! I’m ScoreBot.</strong><br>Subaru uses a Scorecard to measure how well Heartland performs. Let’s learn together!</div>
+      </div>
+      <div class="category-row">
+        <div class="category"><span>🦺</span>Safety</div>
+        <div class="category"><span>✅</span>Quality</div>
+        <div class="category"><span>🚚</span>Delivery</div>
+        <div class="category"><span>💲</span>Cost</div>
+      </div>
+      <p><strong>Goal:</strong> Learn what the Scorecard is and how your daily work affects it.</p>
+      <button class="primary" onclick="startGame()">Start Level 1</button>
+    </div>
+    <div id="gameScreen" class="card hidden">
+      <div class="scorebot">
+        <div class="bot-face">🤖</div>
+        <div class="bot-message" id="botMessage">Let’s begin!</div>
+      </div>
+      <div class="illustration" id="illustration">📋</div>
+      <div class="question-title" id="questionText"></div>
+      <div class="choices" id="choices"></div>
+      <div id="feedback" class="feedback"></div>
+      <div class="actions">
+        <button id="nextBtn" class="primary hidden" onclick="nextQuestion()">Next</button>
+        <button class="secondary" onclick="restartGame()">Restart</button>
+      </div>
+    </div>
+    <div id="endScreen" class="card hidden graduate">
+      <div style="font-size:80px;">🏆</div>
+      <h2>ScoreBot Academy Graduate!</h2>
+      <p>You learned what the Scorecard is, why it matters, the four categories, and how your job affects the score.</p>
+      <div class="big-score" id="finalScore">0 / 5</div>
+      <p id="finalMessage"></p>
+      <button class="primary" onclick="restartGame()">Play Again</button>
+    </div>
+  </div>
+  <script>
+    const questions = [
+      { illustration:"📋🚗", q:"What is the purpose of the Subaru Scorecard?", choices:["Measure employee attendance","Measure supplier performance","Measure payroll costs","Measure sales"], answer:1, explain:"Correct! The Scorecard measures how well Heartland performs as a supplier." },
+      { illustration:"📊✅🚚💲🦺", q:"Which category has the biggest impact on the score?", choices:["Safety (7%)","Cost (19%)","Delivery (26%)","Quality (48%)"], answer:3, explain:"That’s right! Nearly half of the score comes from Quality." },
+      { illustration:"📦🏷️❌", q:"True or False: A mislabeled shipment affects Delivery.", choices:["True","False"], answer:0, explain:"Correct! Mislabels can impact production and are treated like delivery problems." },
+      { illustration:"🦺✅🚚💲", q:"Which area is everyone responsible for?", choices:["Quality only","Safety only","Delivery only","All of the above"], answer:3, explain:"Correct! Every role affects the Scorecard. We all work together." },
+      { illustration:"📈🎯", q:"Why does Subaru use a Scorecard?", choices:["To identify strengths and improvement opportunities","To punish suppliers","To reduce wages","To track vacation days"], answer:0, explain:"Correct! The Scorecard helps us improve and deliver better performance." }
+    ];
+    let current = 0; let score = 0; let answered = false;
+    function startGame(){ document.getElementById("startScreen").classList.add("hidden"); document.getElementById("gameScreen").classList.remove("hidden"); loadQuestion(); }
+    function loadQuestion(){
+      answered=false; const item=questions[current];
+      document.getElementById("qNumber").textContent=current+1; document.getElementById("score").textContent=score;
+      document.getElementById("illustration").textContent=item.illustration; document.getElementById("questionText").textContent=item.q;
+      document.getElementById("botMessage").textContent="Choose the best answer.";
+      document.getElementById("feedback").className="feedback"; document.getElementById("feedback").textContent="";
+      document.getElementById("nextBtn").classList.add("hidden");
+      const choicesDiv=document.getElementById("choices"); choicesDiv.innerHTML="";
+      item.choices.forEach((choice,index)=>{ const btn=document.createElement("button"); btn.className="choice"; btn.textContent=String.fromCharCode(65+index)+". "+choice; btn.onclick=()=>checkAnswer(index,btn); choicesDiv.appendChild(btn); });
+    }
+    function checkAnswer(index,btn){
+      if(answered) return; answered=true; const item=questions[current]; const allButtons=document.querySelectorAll("button.choice");
+      if(index===item.answer){ score++; btn.classList.add("correct"); document.getElementById("feedback").className="feedback good"; document.getElementById("feedback").textContent=item.explain; document.getElementById("botMessage").textContent="Nice job! You protected the score."; }
+      else { btn.classList.add("wrong"); allButtons[item.answer].classList.add("correct"); document.getElementById("feedback").className="feedback bad"; document.getElementById("feedback").textContent="Not quite. "+item.explain; document.getElementById("botMessage").textContent="Good try. Learn and level up!"; }
+      document.getElementById("score").textContent=score; document.getElementById("nextBtn").classList.remove("hidden");
+    }
+    function nextQuestion(){ current++; if(current<questions.length){ loadQuestion(); } else { endGame(); } }
+    function endGame(){
+      document.getElementById("gameScreen").classList.add("hidden"); document.getElementById("endScreen").classList.remove("hidden");
+      document.getElementById("qNumber").textContent=5; document.getElementById("score").textContent=score; document.getElementById("finalScore").textContent=score+" / 5";
+      let message=""; if(score===5) message="Perfect! ScoreBot says: Level Up!"; else if(score>=4) message="Great job! You understand the basics."; else if(score>=3) message="Good start! Keep learning."; else message="Keep practicing. Every role impacts the score.";
+      document.getElementById("finalMessage").textContent=message;
+    }
+    function restartGame(){ current=0; score=0; answered=false; document.getElementById("startScreen").classList.remove("hidden"); document.getElementById("gameScreen").classList.add("hidden"); document.getElementById("endScreen").classList.add("hidden"); document.getElementById("qNumber").textContent=1; document.getElementById("score").textContent=0; }
+  </script>
+</body>
+</html>
